@@ -9,29 +9,80 @@ import {
   Platform,
   StyleSheet,
   Text,
-  View
+  View,
+  TextInput,
+  Button
 } from 'react-native';
+import { encode } from 'punycode';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+var signalr = require('@aspnet/signalr');
+var clients = require('./client');
 
-type Props = {};
-export default class App extends Component<Props> {
+export default class App extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = { 
+      text: 'Input Message to send',
+      resultText: '',
+      token: '',
+      client: undefined
+    }
+  }
+  
+  onPressSend = () => {
+    this.state.client.echo(this.state.text);
+  }
+  
+
+  async componentDidMount() {
+    
+    var host = 'https://wc-signalr-hub.azurewebsites.net'
+
+    var clientId = '123-456-789-0001-console';
+    
+    var client = await clients.createClient(host, clientId)
+      .then(cli => {
+         cli.connect()
+          .then(() => {
+            console.log('client', clientId, 'connected');
+            cli.on('echo', message => {
+              console.log('echo', message);
+              this.setState({
+                resultText: message
+              })
+            });
+          });
+          return cli
+      })
+      .catch(err => {
+        console.log('error', err);
+      });
+      console.log(client);
+      this.setState({
+        client
+      })
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Welcome to React Native!
+          Input message!
+        </Text>
+        <TextInput 
+          style={{ height: 200, width: '100%', borderColor: 'grey', borderWidth: 1 }}
+          onChangeText={(text) => this.setState({text})}
+          value={this.state.text} />
+        <Button 
+          onPress={this.onPressSend} 
+          title="SEND"
+          color="blue" />
+        <Text style={styles.instructions}>
+          Received message!
         </Text>
         <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
+          {this.state.resultText}
         </Text>
       </View>
     );
@@ -44,6 +95,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
+    margin: 20
   },
   welcome: {
     fontSize: 20,

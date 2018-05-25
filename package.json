@@ -8,7 +8,10 @@
   },
   "dependencies": {
     "react": "16.3.1",
-    "react-native": "0.55.4"
+    "react-native": "0.55.4",
+    "react-native-signalr":"1.0.6",
+    "@aspnet/signalr": "1.0.0-rc1-update1",
+    "websocket": "^1.0.26"
   },
   "devDependencies": {
     "babel-jest": "22.4.4",
